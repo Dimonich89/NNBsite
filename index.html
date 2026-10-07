@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наклонно-направленное бурение | Геология и Технологии</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a1628; color: #e2e8f0; }
+        
+        /* НЕФТЯНОЙ СТИЛЬ */
+        .header { background: linear-gradient(135deg, #0f1e35 0%, #1a2a4a 100%); padding: 60px 20px; text-align: center; border-bottom: 4px solid #ff8c00; position: relative; overflow: hidden; }
+        .header::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,140,0,0.08) 0%, transparent 70%); }
+        .header h1 { font-size: 2.8rem; color: #ffffff; position: relative; z-index: 1; }
+        .header h1 span { color: #ff8c00; }
+        .header p { font-size: 1.2rem; color: #94a3b8; max-width: 800px; margin: 15px auto 0; position: relative; z-index: 1; }
+        
+        .nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; position: relative; z-index: 1; }
+        .nav a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; border-radius: 8px; background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.3); transition: 0.3s; font-weight: 500; }
+        .nav a:hover { background: #ff8c00; color: #0a1628; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        
+        .section { margin: 70px 0; }
+        .section-title { font-size: 1.8rem; color: #ffffff; border-left: 5px solid #ff8c00; padding-left: 15px; margin-bottom: 30px; }
+        .section-title i { color: #ff8c00; margin-right: 10px; }
+        
+        .card { background: #0f1e35; border-radius: 12px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid #1e3a5f; margin-bottom: 20px; }
+        .card h3 { color: #ff8c00; margin-bottom: 15px; font-size: 1.3rem; }
+        .card p { color: #cbd5e1; line-height: 1.8; margin-bottom: 12px; }
+        .card ul { margin-left: 20px; line-height: 2; color: #cbd5e1; }
+        .card ul li { margin-bottom: 8px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .header h1 { font-size: 1.8rem; } }
+        
+        .info-badge { display: inline-block; background: rgba(255,140,0,0.15); color: #ff8c00; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin: 5px 5px 5px 0; border: 1px solid rgba(255,140,0,0.3); }
+        
+        #map { height: 450px; width: 100%; border-radius: 12px; border: 2px solid #ff8c00; margin-top: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f1e35; border-radius: 12px; overflow: hidden; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #1e3a5f; }
+        th { background: #1e3a5f; color: #ff8c00; font-weight: 600; }
+        tr:hover { background: #152a45; }
+        
+        .top-item { display: flex; align-items: center; gap: 15px; padding: 18px; background: #0f1e35; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid #ff8c00; }
+        .top-item .rank { font-size: 1.5rem; font-weight: bold; color: #ff8c00; min-width: 40px; }
+        
+        .footer { text-align: center; padding: 40px; background: #0f1e35; color: #64748b; margin-top: 60px; border-top: 1px solid #1e3a5f; }
+        
+        /* SVG СТИЛИ */
+        .svg-container { background: #0f1e35; border-radius: 12px; padding: 20px; border: 1px solid #1e3a5f; margin: 20px 0; text-align: center; overflow-x: auto; }
+        .svg-container svg { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-compass"></i> Наклонно-направленное <span>бурение</span></h1>
+    <p>Управляемое проведение скважин: от геологической модели до точного попадания в пласт</p>
+    <div class="nav">
+        <a href="#what">Что это</a>
+        <a href="#geology">Геология</a>
+        <a href="#tractor">Трактор</a>
+        <a href="#profiles">Профили</a>
+        <a href="#tech">Технологии</a>
+        <a href="#compare">Сравнение</a>
+        <a href="#top">Топы</a>
+        <a href="#map">Карта</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ЧТО ЭТО -->
+    <div class="section" id="what">
+        <div class="section-title"><i class="fas fa-oil-can"></i> Что такое ННБ?</div>
+        <div class="card">
+            <p><strong>Наклонно-направленное бурение (ННБ)</strong> — способ сооружения скважин с отклонением ствола от вертикали по заранее заданной траектории. Наклонными считаются скважины с отклонением более 2° при колонковом бурении и более 6° при глубоком бурении.</p>
+            <p>Главная задача ННБ — <strong>попасть в заданную точку продуктивного пласта</strong> с минимальными затратами. Для этого строится трёхмерная геологическая модель, рассчитывается профиль скважины, а в процессе бурения траектория корректируется по данным телеметрии.</p>
+            <span class="info-badge">Отклонение > 6°</span>
+            <span class="info-badge">Горизонталь = 90°</span>
+            <span class="info-badge">Первый опыт в СССР — 1934 г.</span>
+        </div>
+    </div>
+
+    <!-- ГЕОЛОГИЯ -->
+    <div class="section" id="geology">
+        <div class="section-title"><i class="fas fa-layer-group"></i> Связь с геологией</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Геологическая модель</h3>
+                <p>Перед бурением строится трёхмерная модель на основе сейсмики и данных соседних скважин. В ней отражены углы падения пластов, положение кровли и подошвы коллектора, разломы и зоны выклинивания.</p>
+            </div>
+            <div class="card">
+                <h3>Геонавигация в реальном времени</h3>
+                <p>В процессе бурения геологи получают данные LWD (гамма-каротаж, сопротивление) и MWD (инклинометрия). По ним корректируют траекторию, чтобы не потерять пласт.</p>
+                <span class="info-badge">Точность до 3 м на 15 км</span>
+            </div>
+            <div class="card">
+                <h3>Влияние геологии на профиль</h3>
+                <p>Если пласт наклонён под углом 5°, скважину ведут под этим углом. Если на пути разлом — обходят. Если коллектор неоднороден — выбирают точку входа в продуктивную часть.</p>
+            </div>
+            <div class="card">
+                <h3>Анизотропия пород</h3>
+                <p>Даже без управления долото отклоняется из-за разных свойств пород в разных направлениях. ННБ компенсирует это отклонение и возвращает долото на курс.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТРАКТОР -->
+    <div class="section" id="tractor">
+        <div class="section-title"><i class="fas fa-truck-monster"></i> «Трактор» внутри скважины</div>
+        <div class="card">
+            <p>Скважинный трактор — это устройство для перемещения геофизических приборов и оборудования по горизонтальным и наклонным участкам ствола, где обычные методы (кабель, насос) не работают.</p>
+            <p><strong>Зачем он нужен:</strong> в горизонтальных скважинах длиной до 5 км кабель не может протолкнуть приборы на забой. Трактор цепляется за стенки скважины и «везёт» приборы к цели.</p>
+            <p><strong>Как работает:</strong> выдвижные лапы прижимаются к стенкам, колёса или гусеницы перемещают устройство вдоль ствола. Питание — по кабелю, управление — с поверхности.</p>
+            <span class="info-badge">Преодолевает до 5 км</span>
+            <span class="info-badge">Для каротажа и ремонта</span>
+        </div>
+        <div class="svg-container">
+            <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="600" height="200" fill="#0a1628" rx="10"/>
+                <!-- Скважина (труба) -->
+                <rect x="50" y="80" width="500" height="40" fill="none" stroke="#ff8c00" stroke-width="3" rx="5"/>
+                <!-- Трактор -->
+                <rect x="200" y="90" width="100" height="20" fill="#1e3a5f" stroke="#ff8c00" stroke-width="2" rx="5"/>
+                <!-- Колёса/гусеницы -->
+                <circle cx="215" cy="110" r="8" fill="#ff8c00"/>
+                <circle cx="245" cy="110" r="8" fill="#ff8c00"/>
+                <circle cx="275" cy="110" r="8" fill="#ff8c00"/>
+                <!-- Лапы -->
+                <rect x="200" y="75" width="15" height="10" fill="#94a3b8" rx="2"/>
+                <rect x="285" y="75" width="15" height="10" fill="#94a3b8" rx="2"/>
+                <!-- Прибор -->
+                <rect x="310" y="93" width="40" height="14" fill="#3b82f6" rx="3"/>
+                <!-- Подписи -->
+                <text x="250" y="50" fill="#ff8c00" font-size="14" text-anchor="middle" font-family="Segoe UI">Скважинный трактор</text>
+                <text x="250" y="70" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="Segoe UI">Лапы прижимаются к стенкам</text>
+                <text x="330" y="145" fill="#3b82f6" font-size="12" text-anchor="middle" font-family="Segoe UI">Геофизический прибор</text>
+                <line x1="330" y1="110" x2="330" y2="135" stroke="#3b82f6" stroke-width="1"/>
+                <text x="70" y="105" fill="#94a3b8" font-size="11" font-family="Segoe UI">Ствол скважины</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ПРОФИЛИ -->
+    <div class="section" id="profiles">
+        <div class="section-title"><i class="fas fa-chart-line"></i> Профили наклонно-направленных скважин</div>
+        <div class="card">
+            <p>Профиль скважины — это проекция оси ствола на вертикальную плоскость. Выбор профиля зависит от геологических условий и задачи бурения.</p>
+        </div>
+        <div class="svg-container">
+            <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="800" height="500" fill="#0a1628" rx="10"/>
+                
+                <!-- Земля -->
+                <rect x="0" y="0" width="800" height="80" fill="#1a3a2a" opacity="0.5"/>
+                <line x1="0" y1="80" x2="800" y2="80" stroke="#2a5a4a" stroke-width="2"/>
+                <text x="20" y="40" fill="#94a3b8" font-size="12" font-family="Segoe UI">Поверхность</text>
+                
+                <!-- Вертикальная скважина (серая) -->
+                <line x1="100" y1="80" x2="100" y2="420" stroke="#888888" stroke-width="3"/>
+                <circle cx="100" cy="420" r="5" fill="#888888"/>
+                <text x="60" y="460" fill="#888888" font-size="13" font-family="Segoe UI">Вертикальная</text>
+                
+                <!-- J-образная (жёлтая) -->
+                <path d="M 250 80 L 250 200 Q 250 280 300 320 L 400 380" fill="none" stroke="#ffaa00" stroke-width="3"/>
+                <circle cx="400" cy="380" r="5" fill="#ffaa00"/>
+                <text x="300" y="460" fill="#ffaa00" font-size="13" font-family="Segoe UI">J-образная</text>
+                <text x="310" y="475" fill="#64748b" font-size="10" font-family="Segoe UI">(большой угол входа)</text>
+                
+                <!-- S-образная (красная) -->
+                <path d="M 500 80 L 500 180 Q 500 240 540 270 Q 580 300 580 350 Q 580 400 600 420" fill="none" stroke="#ef4444" stroke-width="3"/>
+                <circle cx="600" cy="420" r="5" fill="#ef4444"/>
+                <text x="520" y="460" fill="#ef4444" font-size="13" font-family="Segoe UI">S-образная</text>
+                <text x="520" y="475" fill="#64748b" font-size="10" font-family="Segoe UI">(возврат к вертикали)</text>
+                
+                <!-- Горизонтальная (оранжевая) -->
+                <path d="M 700 80 L 700 300 Q 700 380 750 400 L 790 400" fill="none" stroke="#ff8c00" stroke-width="3"/>
+                <circle cx="790" cy="400" r="5" fill="#ff8c00"/>
+                <text x="700" y="460" fill="#ff8c00" font-size="13" font-family="Segoe UI">Горизонтальная</text>
+                
+                <!-- Подпись -->
+                <text x="400" y="30" fill="#ffffff" font-size="16" text-anchor="middle" font-family="Segoe UI" font-weight="bold">Типы профилей скважин</text>
+            </svg>
+        </div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>J-образная</h3>
+                <p>Сначала вертикальный участок, затем отклонение на большой глубине. Применяется для вскрытия пласта под большим углом.</p>
+            </div>
+            <div class="card">
+                <h3>S-образная</h3>
+                <p>Вертикальный участок, набор угла, тангенциальный участок, затем снижение угла до вертикали. Классика для кустового бурения.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТЕХНОЛОГИИ -->
+    <div class="section" id="tech">
+        <div class="section-title"><i class="fas fa-cogs"></i> Технологии и инструменты</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Роторные управляемые системы (RSS)</h3>
+                <p>Самый современный метод. Бурильная колонна вращается, а скважинные устройства направляют долото. Точность до 0.01°.</p>
+                <span class="info-badge">Push-the-bit</span>
+                <span class="info-badge">Point-the-bit</span>
+            </div>
+            <div class="card">
+                <h3>Винтовые забойные двигатели</h3>
+                <p>Классика ННБ. Искривлённый переводник создаёт отклоняющую силу. Дешевле RSS, но медленнее.</p>
+            </div>
+            <div class="card">
+                <h3>Телеметрия MWD/LWD</h3>
+                <p>Передача данных с забоя: угол наклона, азимут, гамма-каротаж, сопротивление. Гидравлический или электромагнитный канал.</p>
+            </div>
+            <div class="card">
+                <h3>Долота PDC</h3>
+                <p>Алмазно-твердосплавные долота. Для ННБ лучше шарошечных: меньше вибраций, выше управляемость.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- СРАВНЕНИЕ -->
+    <div class="section" id="compare">
+        <div class="section-title"><i class="fas fa-globe"></i> Россия vs Мир: сравнение технологий ННБ</div>
+        <table>
+            <tr><th>Параметр</th><th>Россия</th><th>Мир</th></tr>
+            <tr><td>Массовое кустовое бурение</td><td>✅ Лидер (Западная Сибирь)</td><td>✅ Развито</td></tr>
+            <tr><td>RSS высокого класса</td><td>⚠️ Догоняем (импортозамещение)</td><td>✅ Schlumberger, Halliburton, Baker Hughes</td></tr>
+            <tr><td>Арктический шельф</td><td>✅ Уникальный опыт (Приразломное)</td><td>✅ Норвегия, США</td></tr>
+            <tr><td>SAGD (пар для вязкой нефти)</td><td>✅ Активно (Русское, Ярега)</td><td>✅ Канада — лидер</td></tr>
+            <tr><td>Геонавигация LWD</td><td>✅ Развита</td><td>✅ Передовая</td></tr>
+            <tr><td>Отечественные RSS</td><td>✅ CG STEER (Роснефть), MRSS</td><td>✅ PowerDrive, AutoTrak, Geo-Pilot</td></tr>
+        </table>
+    </div>
+
+    <!-- ТОПЫ -->
+    <div class="section" id="top">
+        <div class="section-title"><i class="fas fa-trophy"></i> Топы</div>
+        
+        <h3 style="color: #ff8c00; margin: 25px 0 15px;">Топ-5 месторождений России по ННБ</h3>
+        <div class="top-item"><span class="rank">1</span><div><strong>Приобское</strong> — более 90% новых скважин с горизонтальным окончанием</div></div>
+        <div class="top-item"><span class="rank">2</span><div><strong>Самотлорское</strong> — массовое кустовое бурение с 1980-х</div></div>
+        <div class="top-item"><span class="rank">3</span><div><strong>Ванкорское</strong> — кустовые площадки в тайге и мерзлоте</div></div>
+        <div class="top-item"><span class="rank">4</span><div><strong>Приразломное</strong> — все скважины наклонно-направленные с платформы</div></div>
+        <div class="top-item"><span class="rank">5</span><div><strong>Русское</strong> — SAGD: парные горизонтальные скважины</div></div>
+        
+        <h3 style="color: #ff8c00; margin: 35px 0 15px;">Топ-3 самых сложных условий</h3>
+        <div class="top-item"><span class="rank">1</span><div><strong>Приразломное</strong> — арктический шельф, лёд, 2°C</div></div>
+        <div class="top-item"><span class="rank">2</span><div><strong>Русское</strong> — сверхвязкая нефть (10 000 сПз), мерзлота</div></div>
+        <div class="top-item"><span class="rank">3</span><div><strong>Верхнечонское</strong> — вечная мерзлота, бурение только зимой</div></div>
+        
+        <h3 style="color: #ff8c00; margin: 35px 0 15px;">Топ-3 технологических прорывов</h3>
+        <div class="top-item"><span class="rank">1</span><div><strong>Роторные управляемые системы (RSS)</strong> — точность 0.01°</div></div>
+        <div class="top-item"><span class="rank">2</span><div><strong>Геонавигация LWD</strong> — корректировка в реальном времени</div></div>
+        <div class="top-item"><span class="rank">3</span><div><strong>Магнитная навигация</strong> — точность 3 м на 15 км</div></div>
+    </div>
+
+    <!-- КАРТА -->
+    <div class="section" id="map">
+        <div class="section-title"><i class="fas fa-map-marked-alt"></i> Карта применения ННБ в России</div>
+        <div id="map"></div>
+    </div>
+
+</div>
+
+<div class="footer">
+    © 2026 Наклонно-направленное бурение | Геология и технологии
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ===== КАРТА =====
+    const map = L.map('map').setView([62, 75], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© CartoDB'
+    }).addTo(map);
+    
+    const fields = [
+        { name: "Приобское", lat: 61.0, lng: 73.5, desc: "Горизонтальные скважины с ГРП" },
+        { name: "Самотлорское", lat: 60.94, lng: 76.56, desc: "Массовое кустовое бурение" },
+        { name: "Ванкорское", lat: 63.9, lng: 83.3, desc: "Наклонные скважины с кустов" },
+        { name: "Приразломное", lat: 69.7, lng: 57.8, desc: "Морское бурение с платформы" },
+        { name: "Русское", lat: 68.2, lng: 78.0, desc: "SAGD — парные горизонтальные" },
+        { name: "Верхнечонское", lat: 58.3, lng: 108.2, desc: "Вечная мерзлота, зимнее бурение" },
+        { name: "Талаканское", lat: 59.8, lng: 110.8, desc: "Горизонтальные скважины ESPO" },
+        { name: "Южно-Приобское", lat: 60.9, lng: 73.5, desc: "Высокодебитные горизонтальные" }
+    ];
+    
+    const oilIcon = L.divIcon({ html: '🛢️', iconSize: [30, 30], className: 'oil-marker', popupAnchor: [0, -10] });
+    
+    fields.forEach(f => {
+        L.marker([f.lat, f.lng], { icon: oilIcon }).addTo(map)
+            .bindPopup(`<b>${f.name}</b><br>${f.desc}`);
+    });
+</script>
+</body>
+</html>
